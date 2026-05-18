@@ -1,0 +1,3 @@
+aiohttp>=3.9
+apscheduler>=3.10
+azure-storage-blob>=12.19
