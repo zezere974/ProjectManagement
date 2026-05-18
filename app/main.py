@@ -180,9 +180,9 @@ async def login_page(
         return RedirectResponse(url="/dashboard", status_code=302)
 
     return templates.TemplateResponse(
+        request,
         "auth/login.html",
         {
-            "request": request,
             "error": error,
             "app_name": settings.APP_NAME,
         },
@@ -208,9 +208,9 @@ async def login_submit(
 
     if not user or not user.hashed_password or not verify_password(password, user.hashed_password):
         return templates.TemplateResponse(
+            request,
             "auth/login.html",
             {
-                "request": request,
                 "error": "Email ou mot de passe incorrect",
                 "email": email,
                 "app_name": settings.APP_NAME,
@@ -220,9 +220,9 @@ async def login_submit(
 
     if not user.is_active:
         return templates.TemplateResponse(
+            request,
             "auth/login.html",
             {
-                "request": request,
                 "error": "Compte désactivé",
                 "app_name": settings.APP_NAME,
             },
@@ -309,9 +309,9 @@ async def dashboard_page(
     kpis = DashboardKPI(**kpi_data)
 
     return templates.TemplateResponse(
+        request,
         "dashboard.html",
         {
-            "request": request,
             "current_user": current_user,
             "kpis": kpis,
             "pdca_projects": pdca_projects,
@@ -381,9 +381,9 @@ async def projects_page(
     filter_query = ("&" + "&".join(filter_parts)) if filter_parts else ""
 
     return templates.TemplateResponse(
+        request,
         "projects/list.html",
         {
-            "request": request,
             "current_user": current_user,
             "projects": projects_list,
             "teams": teams,
@@ -437,9 +437,9 @@ async def project_detail_page(
     delay = calculate_delay(project)
 
     return templates.TemplateResponse(
+        request,
         "projects/detail.html",
         {
-            "request": request,
             "current_user": current_user,
             "project": project,
             "tasks": tasks,
@@ -488,9 +488,9 @@ async def standup_page(
         projects_by_owner[owner_name].append(p)
 
     return templates.TemplateResponse(
+        request,
         "standup.html",
         {
-            "request": request,
             "current_user": current_user,
             "projects_by_owner": projects_by_owner,
             "today": today.strftime("%d/%m/%Y"),
@@ -522,9 +522,9 @@ async def team_page(
     member_workload = {row.owner_id: row.count for row in workload_rows if row.owner_id}
 
     return templates.TemplateResponse(
+        request,
         "team.html",
         {
-            "request": request,
             "current_user": current_user,
             "members": members,
             "teams": teams,
@@ -542,9 +542,9 @@ async def reports_page(
 ):
     """Page rapports — Phase 2."""
     return templates.TemplateResponse(
+        request,
         "reports.html",
         {
-            "request": request,
             "current_user": current_user,
             "app_name": settings.APP_NAME,
         },
@@ -568,8 +568,9 @@ async def partial_project_tasks(
     ).scalars().all()
     project = db.execute(select(Project).where(Project.id == project_id)).scalars().first()
     return templates.TemplateResponse(
+        request,
         "partials/task_item.html",
-        {"request": request, "tasks": tasks, "project": project, "current_user": current_user},
+        {"tasks": tasks, "project": project, "current_user": current_user},
     )
 
 
