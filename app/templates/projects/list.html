@@ -9,8 +9,8 @@
   <!-- En-tête -->
   <div class="flex items-center justify-between flex-wrap gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-white">Projets</h1>
-      <p class="text-gray-400 text-sm mt-0.5">{{ total_count }} projet(s) trouvé(s)</p>
+      <h1 class="text-2xl font-bold text-slate-900">Projets</h1>
+      <p class="text-slate-500 text-sm mt-0.5">{{ total_count }} projet(s) trouvé(s)</p>
     </div>
     <div class="flex items-center gap-2">
       <!-- Export CSV -->
@@ -35,10 +35,10 @@
       {% endif %}
 
       <!-- Toggle vue -->
-      <div class="flex items-center border border-gray-700 rounded-lg overflow-hidden">
+      <div class="flex items-center border border-slate-200 rounded-lg overflow-hidden">
         <button
           @click="viewMode = 'cards'"
-          :class="viewMode === 'cards' ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-gray-300'"
+          :class="viewMode === 'cards' ? 'bg-gray-700 text-slate-900' : 'text-slate-400 hover:text-slate-600'"
           class="p-2 transition-colors"
           title="Vue cartes"
         >
@@ -48,7 +48,7 @@
         </button>
         <button
           @click="viewMode = 'list'"
-          :class="viewMode === 'list' ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-gray-300'"
+          :class="viewMode === 'list' ? 'bg-gray-700 text-slate-900' : 'text-slate-400 hover:text-slate-600'"
           class="p-2 transition-colors"
           title="Vue liste"
         >
@@ -61,7 +61,7 @@
   </div>
 
   <!-- ===== Filtres ===== -->
-  <form method="GET" action="/projects" class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+  <form method="GET" action="/projects" class="bg-white border border-slate-200 rounded-xl p-4">
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
 
       <!-- Recherche -->
@@ -124,7 +124,7 @@
     {% for project in projects %}
     {% include "partials/project_card.html" %}
     {% else %}
-    <div class="col-span-3 text-center py-16 text-gray-600">
+    <div class="col-span-3 text-center py-16 text-slate-400">
       <div class="text-4xl mb-3">📋</div>
       <div class="text-sm">Aucun projet trouvé</div>
       <a href="/projects" class="text-xs text-blue-400 hover:text-blue-300 mt-2 inline-block">Réinitialiser les filtres</a>
@@ -186,10 +186,10 @@
                 <div class="progress-bar w-16" data-progress="{{ project.progress_pct }}">
                   <div class="progress-bar-fill" style="width: {{ project.progress_pct }}%"></div>
                 </div>
-                <span class="text-xs text-gray-400">{{ project.progress_pct }}%</span>
+                <span class="text-xs text-slate-500">{{ project.progress_pct }}%</span>
               </div>
             </td>
-            <td class="text-xs text-gray-400">
+            <td class="text-xs text-slate-500">
               {{ project.target_date if project.target_date else "—" }}
             </td>
             <td>
@@ -209,7 +209,7 @@
           </tr>
           {% else %}
           <tr>
-            <td colspan="7" class="text-center py-8 text-gray-600">Aucun projet trouvé</td>
+            <td colspan="7" class="text-center py-8 text-slate-400">Aucun projet trouvé</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -223,7 +223,7 @@
     {% if current_page > 1 %}
     <a href="?page={{ current_page - 1 }}{{ filter_query }}" class="btn btn-secondary btn-sm">← Précédent</a>
     {% endif %}
-    <span class="text-sm text-gray-400">Page {{ current_page }} / {{ total_pages }}</span>
+    <span class="text-sm text-slate-500">Page {{ current_page }} / {{ total_pages }}</span>
     {% if current_page < total_pages %}
     <a href="?page={{ current_page + 1 }}{{ filter_query }}" class="btn btn-secondary btn-sm">Suivant →</a>
     {% endif %}

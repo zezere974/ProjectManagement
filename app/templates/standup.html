@@ -9,19 +9,19 @@
   <!-- En-tête avec timer -->
   <div class="flex items-center justify-between flex-wrap gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-white">Stand-up Quotidien</h1>
-      <p class="text-gray-400 text-sm mt-0.5">{{ today }} — Bilan et planification</p>
+      <h1 class="text-2xl font-bold text-slate-900">Stand-up Quotidien</h1>
+      <p class="text-slate-500 text-sm mt-0.5">{{ today }} — Bilan et planification</p>
     </div>
 
     <!-- Timer 15 minutes -->
-    <div class="flex items-center gap-4 bg-gray-900 border border-gray-800 rounded-2xl px-6 py-3">
+    <div class="flex items-center gap-4 bg-white border border-slate-200 rounded-2xl px-6 py-3">
       <div class="text-center">
         <div
           class="standup-timer"
           :style="`color: ${timerColor}`"
           x-text="formattedTime"
         >15:00</div>
-        <div class="text-xs text-gray-500 mt-1">Stand-up Timer</div>
+        <div class="text-xs text-slate-400 mt-1">Stand-up Timer</div>
       </div>
 
       <!-- Barre de progression timer -->
@@ -51,11 +51,11 @@
   {% for owner_name, owner_projects in projects_by_owner.items() %}
   <div class="space-y-3">
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center text-xs font-bold text-white uppercase">
+      <div class="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center text-xs font-bold text-slate-900 uppercase">
         {{ owner_name[:2] }}
       </div>
-      <h2 class="text-base font-semibold text-white">{{ owner_name }}</h2>
-      <span class="text-xs text-gray-500">{{ owner_projects | length }} projet(s)</span>
+      <h2 class="text-base font-semibold text-slate-900">{{ owner_name }}</h2>
+      <span class="text-xs text-slate-400">{{ owner_projects | length }} projet(s)</span>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -80,7 +80,7 @@
               <span class="badge badge-{{ project.lean_phase }}">{{ project.lean_phase | upper }}</span>
               {% if project.is_flagged %}<span class="text-yellow-400 text-xs">⚑</span>{% endif %}
             </div>
-            <a href="/projects/{{ project.id }}" class="text-sm font-semibold text-white hover:text-blue-400 transition-colors">
+            <a href="/projects/{{ project.id }}" class="text-sm font-semibold text-slate-900 hover:text-blue-400 transition-colors">
               {{ project.name }}
             </a>
           </div>
@@ -111,11 +111,11 @@
         <div class="space-y-2">
           <div class="text-xs">
             <span class="text-green-400 font-medium">✓ Fait :</span>
-            <span class="text-gray-300 ml-1">{{ project.today_log.what_done }}</span>
+            <span class="text-slate-600 ml-1">{{ project.today_log.what_done }}</span>
           </div>
           <div class="text-xs">
             <span class="text-blue-400 font-medium">→ Prévu :</span>
-            <span class="text-gray-300 ml-1">{{ project.today_log.what_planned }}</span>
+            <span class="text-slate-600 ml-1">{{ project.today_log.what_planned }}</span>
           </div>
           {% if project.today_log.blockers %}
           <div class="text-xs">
@@ -124,7 +124,7 @@
           </div>
           {% endif %}
           <div class="flex items-center gap-1.5 mt-1">
-            <span class="text-xs text-gray-500">Humeur :</span>
+            <span class="text-xs text-slate-400">Humeur :</span>
             <span class="mood-indicator mood-{{ project.today_log.mood_score }}">{{ project.today_log.mood_score }}</span>
           </div>
         </div>
@@ -180,7 +180,7 @@
                 class="form-input text-xs"
               />
               <div class="flex items-center gap-2">
-                <span class="text-xs text-gray-500">Humeur :</span>
+                <span class="text-xs text-slate-400">Humeur :</span>
                 <input type="range" min="1" max="5" x-model="mood_score" class="flex-1" />
                 <span class="text-xs font-bold" :class="{
                   'text-red-400': mood_score <= 1,
@@ -205,7 +205,7 @@
     </div>
   </div>
   {% else %}
-  <div class="text-center py-16 text-gray-600">
+  <div class="text-center py-16 text-slate-400">
     <div class="text-4xl mb-3">📋</div>
     <div class="text-sm">Aucun projet actif trouvé</div>
   </div>

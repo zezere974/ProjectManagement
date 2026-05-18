@@ -24,7 +24,7 @@ from app.models.task import Task
 from app.models.team import Team
 from app.models.user import User
 from app.routers.auth import get_current_user, get_current_user_optional
-from app.routers import alerts, auth, dashboard, notifications, projects, reports, tasks, team
+from app.routers import alerts, auth, dashboard, htmx, notifications, projects, reports, tasks, team
 from app.services.kpi_service import get_global_kpis
 from app.services.pdca_service import get_pdca_projects_by_phase
 
@@ -112,6 +112,7 @@ templates = Jinja2Templates(directory="app/templates")
 # Inclusion des routeurs API
 # ---------------------------------------------------------------------------
 app.include_router(auth.router)
+app.include_router(htmx.router)
 app.include_router(dashboard.router)
 app.include_router(projects.router)
 app.include_router(tasks.router)
