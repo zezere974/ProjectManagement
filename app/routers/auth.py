@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -19,9 +19,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["Authentification"])
 
-# Contexte de hachage des mots de passe
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 # Schéma de sécurité HTTP Bearer (pour les appels API)
 security = HTTPBearer(auto_error=False)
 
@@ -32,12 +29,12 @@ security = HTTPBearer(auto_error=False)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Vérifie le mot de passe en clair contre le hash bcrypt."""
-    return pwd_context.verify(plain_password, hashed_password)
+    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
 
 
 def hash_password(password: str) -> str:
     """Hache un mot de passe avec bcrypt."""
-    return pwd_context.hash(password)
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

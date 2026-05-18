@@ -64,7 +64,7 @@ def init_db() -> None:
 
 def _seed_demo_data(db) -> None:
     """Insère les données initiales pour l'environnement de démonstration IIoT/OT."""
-    from passlib.context import CryptContext
+    import bcrypt as _bcrypt
     from app.models.user import User
     from app.models.team import Team
     from app.models.project import Project
@@ -72,62 +72,63 @@ def _seed_demo_data(db) -> None:
     from app.models.daily_log import DailyLog
     from app.models.alert import Alert
 
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    def _hash(pw: str) -> str:
+        return _bcrypt.hashpw(pw.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
 
     # --- Utilisateurs ---
     admin = User(
         email="admin@dailymgmt.local",
         username="admin",
-        hashed_password=pwd_context.hash("Admin123!"),
+        hashed_password=_hash("Admin123!"),
         role="admin",
         is_active=True,
     )
     mgr_ot = User(
         email="manager.ot@dailymgmt.local",
         username="jean.martin",
-        hashed_password=pwd_context.hash("Manager123!"),
+        hashed_password=_hash("Manager123!"),
         role="manager",
         is_active=True,
     )
     mgr_it = User(
         email="manager.it@dailymgmt.local",
         username="sophie.bernard",
-        hashed_password=pwd_context.hash("Manager123!"),
+        hashed_password=_hash("Manager123!"),
         role="manager",
         is_active=True,
     )
     u1 = User(
         email="ingenieur1@dailymgmt.local",
         username="pierre.dubois",
-        hashed_password=pwd_context.hash("Member123!"),
+        hashed_password=_hash("Member123!"),
         role="member",
         is_active=True,
     )
     u2 = User(
         email="ingenieur2@dailymgmt.local",
         username="marie.leroy",
-        hashed_password=pwd_context.hash("Member123!"),
+        hashed_password=_hash("Member123!"),
         role="member",
         is_active=True,
     )
     u3 = User(
         email="analyste@dailymgmt.local",
         username="thomas.petit",
-        hashed_password=pwd_context.hash("Member123!"),
+        hashed_password=_hash("Member123!"),
         role="member",
         is_active=True,
     )
     u4 = User(
         email="chef.projet@dailymgmt.local",
         username="camille.moreau",
-        hashed_password=pwd_context.hash("Member123!"),
+        hashed_password=_hash("Member123!"),
         role="member",
         is_active=True,
     )
     u5 = User(
         email="technicien@dailymgmt.local",
         username="lucas.simon",
-        hashed_password=pwd_context.hash("Member123!"),
+        hashed_password=_hash("Member123!"),
         role="member",
         is_active=True,
     )
