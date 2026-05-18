@@ -1,0 +1,55 @@
+{# Élément d'alerte avec bouton de résolution — utilisé dans le dashboard et le détail projet #}
+<div id="alert-{{ alert.id }}" class="alert-item fade-in">
+
+  <!-- Icône selon le type -->
+  <div class="flex-shrink-0 mt-0.5">
+    {% if alert.type == 'blocker' %}
+    <span class="alert-icon-blocker text-lg">🚫</span>
+    {% elif alert.type == 'delay' %}
+    <span class="alert-icon-delay text-lg">⏱</span>
+    {% elif alert.type == 'quality' %}
+    <span class="alert-icon-quality text-lg">⚙</span>
+    {% elif alert.type == 'resource' %}
+    <span class="alert-icon-resource text-lg">👥</span>
+    {% elif alert.type == 'escalation' %}
+    <span class="alert-icon-escalation text-lg">🔺</span>
+    {% else %}
+    <span class="text-gray-400 text-lg">⚠</span>
+    {% endif %}
+  </div>
+
+  <!-- Contenu -->
+  <div class="flex-1 min-w-0">
+    <div class="flex items-center gap-2 mb-0.5">
+      <span class="text-xs font-semibold
+        {% if alert.type == 'blocker' %}text-red-400
+        {% elif alert.type == 'delay' %}text-yellow-400
+        {% elif alert.type == 'escalation' %}text-red-400
+        {% else %}text-orange-400{% endif %} capitalize">
+        {{ alert.type }}
+      </span>
+      {% if alert.is_resolved %}
+      <span class="text-xs text-green-400">✓ Résolu</span>
+      {% endif %}
+    </div>
+    <p class="text-sm text-gray-300">{{ alert.message }}</p>
+    <div class="text-xs text-gray-600 mt-1">
+      Projet #{{ alert.project_id }} —
+      {{ alert.created_at.strftime('%d/%m/%Y %H:%M') if alert.created_at else '' }}
+    </div>
+  </div>
+
+  <!-- Bouton résolution -->
+  {% if not alert.is_resolved %}
+  <button
+    hx-put="/api/alerts/{{ alert.id }}/resolve"
+    hx-target="#alert-{{ alert.id }}"
+    hx-swap="outerHTML"
+    class="btn btn-success btn-sm flex-shrink-0 whitespace-nowrap"
+    title="Marquer comme résolu"
+  >
+    ✓ Résoudre
+  </button>
+  {% endif %}
+
+</div>

@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.name }}{% endblock %}
+{% block page_title %}Détail projet{% endblock %}
+
+{% block content %}
+<div class="space-y-6 fade-in">
+
+  <!-- En-tête -->
+  <div class="flex items-start justify-between gap-4 flex-wrap">
+    <div class="flex-1">
+      <div class="flex items-center gap-3 mb-2">
+        <a href="/projects" class="text-gray-500 hover:text-gray-300 text-sm">← Projets</a>
+        <span class="text-gray-700">/</span>
+        <span class="text-gray-400 text-sm truncate">{{ project.name }}</span>
+      </div>
+      <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+        {{ project.name }}
+        {% if project.is_flagged %}
+        <span class="text-yellow-400" title="Projet signalé">⚑</span>
+        {% endif %}
+      </h1>
+      {% if project.description %}
+      <p class="text-gray-400 text-sm mt-2 max-w-3xl">{{ project.description }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-2 flex-wrap">
+      {% if project.is_flagged %}
+      <button
+        hx-post="/api/projects/{{ project.id }}/unflag"
+        hx-target="body"
+        hx-swap="none"
+        onclick="window.location.reload()"
+        class="btn btn-warning btn-sm"
+      >
+        ⚑ Retirer le signalement
+      </button>
+      {% else %}
+      <button
+        hx-post="/api/projects/{{ project.id }}/flag"
+        hx-target="body"
+        hx-swap="none"
+        onclick="window.location.reload()"
+        class="btn btn-secondary btn-sm"
+      >
+        ⚑ Signaler
+      </button>
+      {% endif %}
+
+      {% if current_user.role in ('admin', 'manager') %}
+      <button
+        onclick="document.getElementById('edit-project-modal').classList.remove('hidden')"
+        class="btn btn-secondary btn-sm"
+      >
+        Modifier
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ===== Informations projet ===== -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Colonne principale -->
+    <div class="lg:col-span-2 space-y-5">
+
+      <!-- Statut et métriques -->
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+          <div>
+            <div class="text-xs text-gray-500 mb-1">Statut</div>
+            <div id="status-badge">
+              {% include "partials/project_status_badge.html" %}
+            </div>
+          </div>
+          <div>
+            <div class="text-xs text-gray-500 mb-1">Priorité</div>
+            <span class="badge badge-{{ project.priority }}">
+              {% if project.priority == 'critical' %}Critique
+              {% elif project.priority == 'high' %}Haute
+              {% elif project.priority == 'medium' %}Moyenne
+              {% else %}Basse{% endif %}
+            </span>
+          </div>
+          <div>
+            <div class="text-xs text-gray-500 mb-1">Phase PDCA</div>
+            <span class="badge badge-{{ project.lean_phase }}">{{ project.lean_phase | upper }}</span>
+          </div>
+          <div>
+            <div class="text-xs text-gray-500 mb-1">Délai</div>
+            <span class="text-sm font-semibold {% if delay > 0 %}text-red-400{% elif delay < 0 %}text-green-400{% else %}text-gray-300{% endif %}">
+              {% if delay > 0 %}+{{ delay }}j de retard
+              {% elif delay < 0 %}{{ delay | abs }}j d'avance
+              {% else %}Dans les délais{% endif %}
+            </span>
+          </div>
+        </div>
+
+        <!-- Progression -->
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs text-gray-400">Progression</span>
+            <span class="text-sm font-semibold text-white">{{ project.progress_pct }}%</span>
+          </div>
+          <div class="progress-bar" data-progress="{{ project.progress_pct }}">
+            <div class="progress-bar-fill" style="width: {{ project.progress_pct }}%"></div>
+          </div>
+        </div>
+
+        <!-- KPI -->
+        {% if project.kpi_target %}
+        <div class="mt-4 pt-4 border-t border-gray-800">
+          <div class="text-xs text-gray-500 mb-1">KPI : {{ project.kpi_unit | default('') }}</div>
+          <div class="flex items-center gap-3">
+            <div class="text-2xl font-bold text-white">{{ project.kpi_actual | default(0) }}</div>
+            <div class="text-gray-500">/</div>
+            <div class="text-lg text-gray-400">{{ project.kpi_target }} {{ project.kpi_unit | default('') }}</div>
+            {% if project.kpi_target > 0 %}
+            <div class="ml-auto text-sm font-medium
+              {% if (project.kpi_actual or 0) >= project.kpi_target %}text-green-400
+              {% elif (project.kpi_actual or 0) >= project.kpi_target * 0.7 %}text-yellow-400
+              {% else %}text-red-400{% endif %}">
+              {{ "%.0f"|format(((project.kpi_actual or 0) / project.kpi_target * 100)) }}%
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- ===== Tâches ===== -->
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-base font-semibold text-white">Tâches</h2>
+          <span class="text-xs text-gray-500">
+            {{ tasks | selectattr('status', 'eq', 'done') | list | length }} / {{ tasks | length }} terminée(s)
+          </span>
+        </div>
+
+        <!-- Liste des tâches -->
+        <div id="tasks-list" class="space-y-1">
+          {% for task in tasks %}
+          {% include "partials/task_item.html" %}
+          {% else %}
+          <div class="text-center py-4 text-gray-600 text-sm">Aucune tâche définie</div>
+          {% endfor %}
+        </div>
+
+        <!-- Formulaire d'ajout rapide -->
+        <div class="mt-4 pt-4 border-t border-gray-800">
+          <form
+            hx-post="/api/projects/{{ project.id }}/tasks"
+            hx-target="#tasks-list"
+            hx-swap="beforeend"
+            hx-headers='{"Content-Type": "application/json"}'
+            class="flex gap-2"
+            x-data="{title: ''}"
+            @htmx:before-request="document.getElementById('new-task-input').value = ''"
+          >
+            <input
+              id="new-task-input"
+              type="text"
+              name="title"
+              x-model="title"
+              placeholder="Nouvelle tâche..."
+              class="form-input text-sm flex-1"
+              required
+            />
+            <button type="submit" class="btn btn-primary btn-sm">+ Ajouter</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ===== Journal quotidien du jour ===== -->
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <h2 class="text-base font-semibold text-white mb-4">📝 Standup du jour</h2>
+        {% include "partials/daily_log_form.html" %}
+      </div>
+
+      <!-- ===== Historique des logs ===== -->
+      {% if daily_logs %}
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <h2 class="text-base font-semibold text-white mb-4">Historique standup</h2>
+        <div class="space-y-0">
+          {% for log in daily_logs[:10] %}
+          <div class="timeline-item">
+            <div class="timeline-dot">
+              <span class="mood-indicator mood-{{ log.mood_score }} text-xs">{{ log.mood_score }}</span>
+            </div>
+            <div class="flex-1 pt-1 pb-4">
+              <div class="text-xs text-gray-500 mb-1">{{ log.log_date }} — {{ log.user.username if log.user else '?' }}</div>
+              <div class="text-sm text-gray-200 mb-1"><span class="text-green-400">✓</span> {{ log.what_done }}</div>
+              <div class="text-sm text-gray-300 mb-1"><span class="text-blue-400">→</span> {{ log.what_planned }}</div>
+              {% if log.blockers %}
+              <div class="text-sm text-red-300"><span class="text-red-400">⚠</span> {{ log.blockers }}</div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Colonne latérale -->
+    <div class="space-y-4">
+
+      <!-- Informations clés -->
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+        <h3 class="text-sm font-semibold text-white mb-3">Informations</h3>
+        <div class="space-y-3 text-sm">
+          <div>
+            <div class="text-xs text-gray-500">Responsable</div>
+            <div class="text-gray-200">{{ project.owner.username if project.owner else "—" }}</div>
+          </div>
+          <div>
+            <div class="text-xs text-gray-500">Équipe</div>
+            <div class="text-gray-200">{{ project.team.name if project.team else "—" }}</div>
+          </div>
+          <div>
+            <div class="text-xs text-gray-500">Date de début</div>
+            <div class="text-gray-200">{{ project.start_date or "—" }}</div>
+          </div>
+          <div>
+            <div class="text-xs text-gray-500">Date cible</div>
+            <div class="text-gray-200 {% if delay > 5 %}text-red-400{% endif %}">
+              {{ project.target_date or "—" }}
+            </div>
+          </div>
+          {% if project.actual_end_date %}
+          <div>
+            <div class="text-xs text-gray-500">Date de fin réelle</div>
+            <div class="text-green-400">{{ project.actual_end_date }}</div>
+          </div>
+          {% endif %}
+          <div>
+            <div class="text-xs text-gray-500">Créé le</div>
+            <div class="text-gray-400 text-xs">{{ project.created_at.strftime('%d/%m/%Y') if project.created_at else "—" }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      {% if project.notes %}
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+        <h3 class="text-sm font-semibold text-white mb-2">Notes</h3>
+        <p class="text-sm text-gray-400">{{ project.notes }}</p>
+      </div>
+      {% endif %}
+
+      <!-- Alertes du projet -->
+      {% if project_alerts %}
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+        <h3 class="text-sm font-semibold text-white mb-3">
+          Alertes
+          <span class="ml-2 text-xs bg-red-900/40 text-red-400 px-2 py-0.5 rounded-full">
+            {{ project_alerts | length }}
+          </span>
+        </h3>
+        <div class="space-y-2">
+          {% for alert in project_alerts %}
+          <div class="text-xs bg-gray-800 rounded-lg p-3 border border-gray-700">
+            <div class="flex items-center gap-1.5 mb-1">
+              <span class="w-1.5 h-1.5 rounded-full
+                {% if alert.type == 'blocker' %}bg-red-400
+                {% elif alert.type == 'delay' %}bg-yellow-400
+                {% else %}bg-orange-400{% endif %}"></span>
+              <span class="font-medium text-gray-300 capitalize">{{ alert.type }}</span>
+              {% if alert.is_resolved %}
+              <span class="ml-auto text-green-400 text-xs">✓ Résolu</span>
+              {% endif %}
+            </div>
+            <p class="text-gray-400">{{ alert.message[:100] }}{% if alert.message | length > 100 %}...{% endif %}</p>
+            {% if not alert.is_resolved %}
+            <button
+              hx-put="/api/alerts/{{ alert.id }}/resolve"
+              hx-target="closest div"
+              hx-swap="outerHTML"
+              class="btn btn-success btn-sm mt-2"
+            >
+              Résoudre
+            </button>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Mise à jour rapide du statut -->
+      {% if current_user.role in ('admin', 'manager') or project.owner_id == current_user.id %}
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+        <h3 class="text-sm font-semibold text-white mb-3">Mise à jour rapide</h3>
+        <div class="space-y-2">
+          <div>
+            <label class="form-label text-xs">Statut</label>
+            <select
+              id="quick-status"
+              hx-put="/api/projects/{{ project.id }}"
+              hx-trigger="change"
+              hx-vals="js:{status: document.getElementById('quick-status').value}"
+              hx-target="#status-badge"
+              hx-swap="innerHTML"
+              class="form-input text-sm"
+            >
+              <option value="backlog" {% if project.status == 'backlog' %}selected{% endif %}>Backlog</option>
+              <option value="in_progress" {% if project.status == 'in_progress' %}selected{% endif %}>En cours</option>
+              <option value="blocked" {% if project.status == 'blocked' %}selected{% endif %}>Bloqué</option>
+              <option value="done" {% if project.status == 'done' %}selected{% endif %}>Terminé</option>
+              <option value="cancelled" {% if project.status == 'cancelled' %}selected{% endif %}>Annulé</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label text-xs">Phase PDCA</label>
+            <select
+              hx-put="/api/projects/{{ project.id }}"
+              hx-trigger="change"
+              hx-include="this"
+              name="lean_phase"
+              class="form-input text-sm"
+            >
+              <option value="plan" {% if project.lean_phase == 'plan' %}selected{% endif %}>Plan</option>
+              <option value="do" {% if project.lean_phase == 'do' %}selected{% endif %}>Do</option>
+              <option value="check" {% if project.lean_phase == 'check' %}selected{% endif %}>Check</option>
+              <option value="act" {% if project.lean_phase == 'act' %}selected{% endif %}>Act</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label text-xs">Progression (%)</label>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              value="{{ project.progress_pct }}"
+              hx-put="/api/projects/{{ project.id }}"
+              hx-trigger="change"
+              hx-include="this"
+              name="progress_pct"
+              class="form-input text-sm"
+            />
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

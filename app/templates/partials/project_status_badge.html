@@ -1,0 +1,9 @@
+{# Badge de statut projet réutilisable — supporte la mise à jour via HTMX #}
+<span class="badge badge-{{ project.status }}">
+  {% if project.status == 'in_progress' %}En cours
+  {% elif project.status == 'blocked' %}Bloqué
+  {% elif project.status == 'done' %}Terminé
+  {% elif project.status == 'backlog' %}Backlog
+  {% elif project.status == 'cancelled' %}Annulé
+  {% else %}{{ project.status }}{% endif %}
+</span>

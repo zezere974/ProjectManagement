@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.env.local
+*.db
+*.db-journal
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+reports_output/
+/tmp/test_*.db

@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Projets{% endblock %}
+{% block page_title %}Projets{% endblock %}
+
+{% block content %}
+<div x-data="{ viewMode: 'cards', confirmDelete: null }" class="space-y-6 fade-in">
+
+  <!-- En-tête -->
+  <div class="flex items-center justify-between flex-wrap gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-white">Projets</h1>
+      <p class="text-gray-400 text-sm mt-0.5">{{ total_count }} projet(s) trouvé(s)</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <!-- Export CSV -->
+      <a href="/api/export/projects?format=csv" class="btn btn-secondary btn-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        </svg>
+        Exporter CSV
+      </a>
+
+      {% if current_user.role in ('admin', 'manager') %}
+      <!-- Nouveau projet -->
+      <button
+        onclick="document.getElementById('new-project-modal').classList.remove('hidden')"
+        class="btn btn-primary btn-sm"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Nouveau projet
+      </button>
+      {% endif %}
+
+      <!-- Toggle vue -->
+      <div class="flex items-center border border-gray-700 rounded-lg overflow-hidden">
+        <button
+          @click="viewMode = 'cards'"
+          :class="viewMode === 'cards' ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-gray-300'"
+          class="p-2 transition-colors"
+          title="Vue cartes"
+        >
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M3 3h8v8H3V3zm0 10h8v8H3v-8zm10-10h8v8h-8V3zm0 10h8v8h-8v-8z"/>
+          </svg>
+        </button>
+        <button
+          @click="viewMode = 'list'"
+          :class="viewMode === 'list' ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-gray-300'"
+          class="p-2 transition-colors"
+          title="Vue liste"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Filtres ===== -->
+  <form method="GET" action="/projects" class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+
+      <!-- Recherche -->
+      <div class="col-span-2 md:col-span-4 lg:col-span-2">
+        <input
+          type="text"
+          name="search"
+          placeholder="Rechercher un projet..."
+          value="{{ filters.search | default('') }}"
+          class="form-input text-sm"
+        />
+      </div>
+
+      <!-- Statut -->
+      <select name="status" class="form-input text-sm">
+        <option value="">Tous les statuts</option>
+        <option value="backlog" {% if filters.status == 'backlog' %}selected{% endif %}>Backlog</option>
+        <option value="in_progress" {% if filters.status == 'in_progress' %}selected{% endif %}>En cours</option>
+        <option value="blocked" {% if filters.status == 'blocked' %}selected{% endif %}>Bloqué</option>
+        <option value="done" {% if filters.status == 'done' %}selected{% endif %}>Terminé</option>
+        <option value="cancelled" {% if filters.status == 'cancelled' %}selected{% endif %}>Annulé</option>
+      </select>
+
+      <!-- Priorité -->
+      <select name="priority" class="form-input text-sm">
+        <option value="">Toutes priorités</option>
+        <option value="critical" {% if filters.priority == 'critical' %}selected{% endif %}>Critique</option>
+        <option value="high" {% if filters.priority == 'high' %}selected{% endif %}>Haute</option>
+        <option value="medium" {% if filters.priority == 'medium' %}selected{% endif %}>Moyenne</option>
+        <option value="low" {% if filters.priority == 'low' %}selected{% endif %}>Basse</option>
+      </select>
+
+      <!-- Phase PDCA -->
+      <select name="lean_phase" class="form-input text-sm">
+        <option value="">Phase PDCA</option>
+        <option value="plan" {% if filters.lean_phase == 'plan' %}selected{% endif %}>Plan</option>
+        <option value="do" {% if filters.lean_phase == 'do' %}selected{% endif %}>Do</option>
+        <option value="check" {% if filters.lean_phase == 'check' %}selected{% endif %}>Check</option>
+        <option value="act" {% if filters.lean_phase == 'act' %}selected{% endif %}>Act</option>
+      </select>
+
+      <!-- Équipe -->
+      <select name="team_id" class="form-input text-sm col-span-2 md:col-span-2 lg:col-span-1">
+        <option value="">Toutes équipes</option>
+        {% for team in teams %}
+        <option value="{{ team.id }}" {% if filters.team_id == team.id %}selected{% endif %}>{{ team.name }}</option>
+        {% endfor %}
+      </select>
+
+      <!-- Boutons -->
+      <div class="col-span-2 md:col-span-2 lg:col-span-1 flex gap-2">
+        <button type="submit" class="btn btn-primary btn-sm flex-1">Filtrer</button>
+        <a href="/projects" class="btn btn-secondary btn-sm">✕</a>
+      </div>
+    </div>
+  </form>
+
+  <!-- ===== Vue Cartes ===== -->
+  <div x-show="viewMode === 'cards'" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    {% for project in projects %}
+    {% include "partials/project_card.html" %}
+    {% else %}
+    <div class="col-span-3 text-center py-16 text-gray-600">
+      <div class="text-4xl mb-3">📋</div>
+      <div class="text-sm">Aucun projet trouvé</div>
+      <a href="/projects" class="text-xs text-blue-400 hover:text-blue-300 mt-2 inline-block">Réinitialiser les filtres</a>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- ===== Vue Liste ===== -->
+  <div x-show="viewMode === 'list'" x-cloak>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Projet</th>
+            <th>Statut</th>
+            <th>Priorité</th>
+            <th>Phase</th>
+            <th>Progression</th>
+            <th>Date cible</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for project in projects %}
+          <tr>
+            <td>
+              <div class="flex items-center gap-2">
+                {% if project.is_flagged %}
+                <span class="text-yellow-400 text-sm" title="Signalé">⚑</span>
+                {% endif %}
+                <a href="/projects/{{ project.id }}" class="text-blue-400 hover:text-blue-300 font-medium text-sm">
+                  {{ project.name }}
+                </a>
+              </div>
+            </td>
+            <td>
+              <span class="badge badge-{{ project.status }}">
+                {% if project.status == 'in_progress' %}En cours
+                {% elif project.status == 'blocked' %}Bloqué
+                {% elif project.status == 'done' %}Terminé
+                {% elif project.status == 'backlog' %}Backlog
+                {% elif project.status == 'cancelled' %}Annulé
+                {% else %}{{ project.status }}{% endif %}
+              </span>
+            </td>
+            <td>
+              <span class="badge badge-{{ project.priority }}">
+                {% if project.priority == 'critical' %}Critique
+                {% elif project.priority == 'high' %}Haute
+                {% elif project.priority == 'medium' %}Moyenne
+                {% else %}Basse{% endif %}
+              </span>
+            </td>
+            <td>
+              <span class="badge badge-{{ project.lean_phase }}">{{ project.lean_phase | upper }}</span>
+            </td>
+            <td>
+              <div class="flex items-center gap-2">
+                <div class="progress-bar w-16" data-progress="{{ project.progress_pct }}">
+                  <div class="progress-bar-fill" style="width: {{ project.progress_pct }}%"></div>
+                </div>
+                <span class="text-xs text-gray-400">{{ project.progress_pct }}%</span>
+              </div>
+            </td>
+            <td class="text-xs text-gray-400">
+              {{ project.target_date if project.target_date else "—" }}
+            </td>
+            <td>
+              <div class="flex items-center gap-1">
+                <a href="/projects/{{ project.id }}" class="btn btn-secondary btn-sm">Détail</a>
+                {% if current_user.role in ('admin', 'manager') %}
+                <button
+                  hx-delete="/api/projects/{{ project.id }}"
+                  hx-confirm="Supprimer ce projet ?"
+                  hx-target="closest tr"
+                  hx-swap="outerHTML"
+                  class="btn btn-danger btn-sm"
+                >✕</button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" class="text-center py-8 text-gray-600">Aucun projet trouvé</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if total_pages > 1 %}
+  <div class="flex items-center justify-center gap-2">
+    {% if current_page > 1 %}
+    <a href="?page={{ current_page - 1 }}{{ filter_query }}" class="btn btn-secondary btn-sm">← Précédent</a>
+    {% endif %}
+    <span class="text-sm text-gray-400">Page {{ current_page }} / {{ total_pages }}</span>
+    {% if current_page < total_pages %}
+    <a href="?page={{ current_page + 1 }}{{ filter_query }}" class="btn btn-secondary btn-sm">Suivant →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

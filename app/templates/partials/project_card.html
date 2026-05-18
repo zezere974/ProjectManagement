@@ -1,0 +1,79 @@
+{# Carte projet réutilisable — utilisée dans la liste des projets et le dashboard #}
+<div class="project-card fade-in {% if project.status == 'blocked' %}blocked{% elif project.is_flagged %}flagged{% endif %}">
+  <!-- En-tête de la carte -->
+  <div class="flex items-start justify-between gap-2 mb-3">
+    <a href="/projects/{{ project.id }}" class="text-sm font-semibold text-white hover:text-blue-400 transition-colors leading-tight flex-1">
+      {{ project.name }}
+    </a>
+    <div class="flex items-center gap-1 flex-shrink-0">
+      {% if project.is_flagged %}
+      <span class="text-yellow-400 text-sm" title="Projet signalé">⚑</span>
+      {% endif %}
+      <button
+        hx-post="/api/projects/{{ project.id }}/{% if project.is_flagged %}unflag{% else %}flag{% endif %}"
+        hx-target="closest div.project-card"
+        hx-swap="outerHTML"
+        class="text-gray-600 hover:text-yellow-400 transition-colors p-0.5"
+        title="{% if project.is_flagged %}Retirer le signalement{% else %}Signaler{% endif %}"
+      >
+        {% if not project.is_flagged %}
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
+        </svg>
+        {% endif %}
+      </button>
+    </div>
+  </div>
+
+  <!-- Badges statut + priorité + phase -->
+  <div class="flex items-center gap-1.5 flex-wrap mb-3">
+    <span class="badge badge-{{ project.status }}">
+      {% if project.status == 'in_progress' %}En cours
+      {% elif project.status == 'blocked' %}Bloqué
+      {% elif project.status == 'done' %}Terminé
+      {% elif project.status == 'backlog' %}Backlog
+      {% elif project.status == 'cancelled' %}Annulé
+      {% else %}{{ project.status }}{% endif %}
+    </span>
+    <span class="badge badge-{{ project.priority }}">
+      {% if project.priority == 'critical' %}Critique
+      {% elif project.priority == 'high' %}Haute
+      {% elif project.priority == 'medium' %}Moyenne
+      {% else %}Basse{% endif %}
+    </span>
+    <span class="badge badge-{{ project.lean_phase }}">{{ project.lean_phase | upper }}</span>
+  </div>
+
+  <!-- Barre de progression -->
+  <div class="mb-2">
+    <div class="flex justify-between text-xs text-gray-500 mb-1">
+      <span>Progression</span>
+      <span class="font-semibold text-gray-300">{{ project.progress_pct }}%</span>
+    </div>
+    <div class="progress-bar" data-progress="{{ project.progress_pct }}">
+      <div class="progress-bar-fill" style="width: {{ project.progress_pct }}%;
+        background-color: {% if project.status == 'done' %}#22c55e
+          {% elif project.status == 'blocked' %}#ef4444
+          {% elif project.progress_pct >= 70 %}#3b82f6
+          {% elif project.progress_pct >= 40 %}#eab308
+          {% else %}#ef4444{% endif %}
+      "></div>
+    </div>
+  </div>
+
+  <!-- Pied de carte : KPI + date -->
+  <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-800">
+    <div class="text-xs text-gray-500">
+      {% if project.target_date %}
+      📅 {{ project.target_date }}
+      {% else %}
+      Pas de date cible
+      {% endif %}
+    </div>
+    {% if project.kpi_target and project.kpi_unit %}
+    <div class="text-xs text-gray-400">
+      {{ project.kpi_actual | default(0) | int }} / {{ project.kpi_target | int }} {{ project.kpi_unit }}
+    </div>
+    {% endif %}
+  </div>
+</div>

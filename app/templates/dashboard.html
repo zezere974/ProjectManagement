@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord{% endblock %}
+{% block page_title %}Tableau de bord{% endblock %}
+
+{% block content %}
+<div class="space-y-6 fade-in">
+
+  <!-- En-tête -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-white">Tableau de bord</h1>
+      <p class="text-gray-400 text-sm mt-0.5">Vue d'ensemble Lean — IIoT / OT</p>
+    </div>
+    <div class="flex items-center gap-2 text-sm text-gray-400">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+      {{ today }}
+    </div>
+  </div>
+
+  <!-- ===== KPI Cards ===== -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
+    <!-- Total projets -->
+    <div class="kpi-card">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total Projets</span>
+        <div class="w-8 h-8 rounded-lg bg-blue-900/40 flex items-center justify-center">
+          <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+          </svg>
+        </div>
+      </div>
+      <div class="text-3xl font-bold text-white">{{ kpis.total_projects }}</div>
+      <div class="text-xs text-gray-500 mt-1">{{ kpis.active_projects }} actifs · {{ kpis.done_projects }} terminés</div>
+    </div>
+
+    <!-- Projets bloqués -->
+    <div class="kpi-card border-red-900/30">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">Bloqués</span>
+        <div class="w-8 h-8 rounded-lg bg-red-900/40 flex items-center justify-center">
+          <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+      </div>
+      <div class="text-3xl font-bold {% if kpis.blocked_projects > 0 %}text-red-400{% else %}text-white{% endif %}">
+        {{ kpis.blocked_projects }}
+      </div>
+      <div class="text-xs text-gray-500 mt-1">{{ kpis.unresolved_alerts }} alertes actives</div>
+    </div>
+
+    <!-- Projets signalés -->
+    <div class="kpi-card border-yellow-900/30">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">Signalés</span>
+        <div class="w-8 h-8 rounded-lg bg-yellow-900/40 flex items-center justify-center">
+          <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
+          </svg>
+        </div>
+      </div>
+      <div class="text-3xl font-bold {% if kpis.flagged_projects > 0 %}text-yellow-400{% else %}text-white{% endif %}">
+        {{ kpis.flagged_projects }}
+      </div>
+      <div class="text-xs text-gray-500 mt-1">Nécessitent attention</div>
+    </div>
+
+    <!-- Humeur équipe -->
+    <div class="kpi-card">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">Humeur Équipe</span>
+        <div class="w-8 h-8 rounded-lg bg-green-900/40 flex items-center justify-center">
+          <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+      </div>
+      <div class="text-3xl font-bold {% if kpis.avg_mood >= 4 %}text-green-400{% elif kpis.avg_mood >= 3 %}text-yellow-400{% else %}text-red-400{% endif %}">
+        {{ "%.1f"|format(kpis.avg_mood) }}
+        <span class="text-lg text-gray-500">/5</span>
+      </div>
+      <div class="text-xs text-gray-500 mt-1">7 derniers jours · Progression moy. {{ "%.0f"|format(kpis.avg_progress) }}%</div>
+    </div>
+  </div>
+
+  <!-- ===== Kanban PDCA ===== -->
+  <div>
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold text-white">Tableau PDCA</h2>
+      <a href="/projects" class="text-xs text-blue-400 hover:text-blue-300">Voir tous les projets →</a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+
+      {% for phase, phase_label, phase_color, phase_bg in [
+          ('plan', 'Plan', '#6b7280', 'bg-gray-800/30'),
+          ('do', 'Do', '#3b82f6', 'bg-blue-900/20'),
+          ('check', 'Check', '#eab308', 'bg-yellow-900/20'),
+          ('act', 'Act', '#22c55e', 'bg-green-900/20'),
+      ] %}
+      <div class="kanban-column kanban-{{ phase }}">
+        <!-- En-tête colonne -->
+        <div class="kanban-column-header flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full" style="background-color: {{ phase_color }}"></span>
+            <span class="font-semibold text-sm text-white">{{ phase_label }}</span>
+          </div>
+          <span class="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full">
+            {{ pdca_projects[phase] | length }}
+          </span>
+        </div>
+
+        <!-- Cartes projet -->
+        <div class="p-3 space-y-2">
+          {% for project in pdca_projects[phase][:5] %}
+          <a href="/projects/{{ project.id }}" class="block project-card {% if project.status == 'blocked' %}blocked{% elif project.is_flagged %}flagged{% endif %} hover:border-gray-600 transition-colors">
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <span class="text-xs font-medium text-gray-200 leading-tight line-clamp-2">{{ project.name }}</span>
+              {% if project.is_flagged %}
+              <span class="text-yellow-400 flex-shrink-0" title="Signalé">⚑</span>
+              {% endif %}
+            </div>
+
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="badge badge-{{ project.status }}">
+                {% if project.status == 'in_progress' %}En cours
+                {% elif project.status == 'blocked' %}Bloqué
+                {% elif project.status == 'done' %}Terminé
+                {% elif project.status == 'backlog' %}Backlog
+                {% else %}{{ project.status }}{% endif %}
+              </span>
+              <span class="badge badge-{{ project.priority }}">
+                {% if project.priority == 'critical' %}Critique
+                {% elif project.priority == 'high' %}Haute
+                {% elif project.priority == 'medium' %}Moyenne
+                {% else %}Basse{% endif %}
+              </span>
+            </div>
+
+            {% if project.progress_pct > 0 %}
+            <div class="mt-2">
+              <div class="progress-bar" data-progress="{{ project.progress_pct }}">
+                <div class="progress-bar-fill" style="width: {{ project.progress_pct }}%; background-color: {{ phase_color }}"></div>
+              </div>
+              <div class="text-xs text-gray-500 mt-1">{{ project.progress_pct }}%</div>
+            </div>
+            {% endif %}
+          </a>
+          {% endfor %}
+
+          {% if pdca_projects[phase] | length > 5 %}
+          <a href="/projects?lean_phase={{ phase }}" class="block text-center text-xs text-gray-500 hover:text-gray-300 py-1">
+            +{{ pdca_projects[phase] | length - 5 }} autres →
+          </a>
+          {% endif %}
+
+          {% if not pdca_projects[phase] %}
+          <div class="text-center py-6 text-gray-600 text-xs">
+            Aucun projet en {{ phase_label }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+
+    </div>
+  </div>
+
+  <!-- ===== Bas de page : Alertes + Top projets critiques + Humeur ===== -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Alertes actives -->
+    <div class="lg:col-span-2">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-white">Alertes actives</h2>
+        <span class="text-xs text-gray-500">{{ active_alerts | length }} non résolue(s)</span>
+      </div>
+
+      {% if active_alerts %}
+      <div class="space-y-2">
+        {% for alert in active_alerts[:5] %}
+        {% include "partials/alert_item.html" %}
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center">
+        <div class="text-green-400 text-3xl mb-2">✓</div>
+        <div class="text-sm text-gray-400">Aucune alerte active</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Panel droit -->
+    <div class="space-y-4">
+      <!-- Projets critiques -->
+      <div>
+        <h2 class="text-lg font-semibold text-white mb-3">Top Critiques</h2>
+        {% for project in critical_projects %}
+        <a href="/projects/{{ project.id }}" class="block project-card mb-2 hover:border-red-800 transition-colors">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="badge badge-critical">Critique</span>
+            <span class="badge badge-{{ project.status }}">
+              {% if project.status == 'blocked' %}Bloqué{% elif project.status == 'in_progress' %}En cours{% else %}{{ project.status }}{% endif %}
+            </span>
+          </div>
+          <div class="text-xs font-medium text-gray-200 mt-1">{{ project.name }}</div>
+          <div class="progress-bar mt-2" data-progress="{{ project.progress_pct }}">
+            <div class="progress-bar-fill bg-red-500" style="width: {{ project.progress_pct }}%"></div>
+          </div>
+          <div class="text-xs text-gray-500 mt-1">{{ project.progress_pct }}%</div>
+        </a>
+        {% else %}
+        <div class="text-xs text-gray-600 italic">Aucun projet critique en cours</div>
+        {% endfor %}
+      </div>
+
+      <!-- Météo humeur par équipe -->
+      {% if team_mood %}
+      <div>
+        <h2 class="text-base font-semibold text-white mb-3">Météo Équipes</h2>
+        <div class="space-y-2">
+          {% for team_name, mood_score in team_mood.items() %}
+          <div class="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-lg px-3 py-2">
+            <span class="text-xs text-gray-300">{{ team_name }}</span>
+            <div class="flex items-center gap-2">
+              <span class="mood-indicator mood-{{ mood_score | int }}">{{ "%.1f"|format(mood_score) }}</span>
+              <span class="text-xs">
+                {% if mood_score >= 4.5 %}😄
+                {% elif mood_score >= 3.5 %}🙂
+                {% elif mood_score >= 2.5 %}😐
+                {% elif mood_score >= 1.5 %}😕
+                {% else %}😞{% endif %}
+              </span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

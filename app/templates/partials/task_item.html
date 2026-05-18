@@ -1,0 +1,59 @@
+{# Ligne de tâche avec checkbox — utilisée dans le détail du projet #}
+<div id="task-{{ task.id }}" class="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-gray-800/50 group transition-colors">
+
+  <!-- Checkbox HTMX -->
+  <button
+    hx-put="/api/tasks/{{ task.id }}"
+    hx-vals='{"status": "{% if task.status == "done" %}todo{% else %}done{% endif %}"}'
+    hx-target="#task-{{ task.id }}"
+    hx-swap="outerHTML"
+    class="flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all
+      {% if task.status == 'done' %}bg-green-500 border-green-500 text-white
+      {% elif task.status == 'blocked' %}border-red-500 text-red-500
+      {% else %}border-gray-600 hover:border-blue-500{% endif %}"
+    title="{% if task.status == 'done' %}Marquer non terminé{% else %}Marquer terminé{% endif %}"
+  >
+    {% if task.status == 'done' %}
+    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+    </svg>
+    {% elif task.status == 'blocked' %}
+    <span class="text-xs">✕</span>
+    {% endif %}
+  </button>
+
+  <!-- Titre tâche -->
+  <div class="flex-1 min-w-0">
+    <span class="text-sm {% if task.status == 'done' %}line-through text-gray-600{% elif task.status == 'blocked' %}text-red-400{% else %}text-gray-300{% endif %}">
+      {{ task.title }}
+    </span>
+    {% if task.is_quick_win %}
+    <span class="ml-2 text-xs bg-yellow-900/30 text-yellow-400 border border-yellow-900 px-1.5 py-0.5 rounded-full">⚡ Quick Win</span>
+    {% endif %}
+    {% if task.due_date %}
+    <span class="ml-2 text-xs text-gray-600">📅 {{ task.due_date }}</span>
+    {% endif %}
+  </div>
+
+  <!-- Assigné à -->
+  {% if task.assigned_to %}
+  <span class="text-xs text-gray-500 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+    {{ task.assigned_to.username }}
+  </span>
+  {% endif %}
+
+  <!-- Bouton suppression -->
+  <button
+    hx-delete="/api/tasks/{{ task.id }}"
+    hx-target="#task-{{ task.id }}"
+    hx-swap="outerHTML"
+    hx-confirm="Supprimer cette tâche ?"
+    class="text-gray-700 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
+    title="Supprimer"
+  >
+    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+    </svg>
+  </button>
+
+</div>

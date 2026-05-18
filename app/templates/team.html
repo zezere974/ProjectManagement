@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Équipe{% endblock %}
+{% block page_title %}Équipe{% endblock %}
+
+{% block content %}
+<div x-data="{ showAddModal: false, editUser: null }" class="space-y-6 fade-in">
+
+  <!-- En-tête -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-white">Équipe</h1>
+      <p class="text-gray-400 text-sm mt-0.5">{{ members | length }} membre(s)</p>
+    </div>
+    {% if current_user.role in ('admin', 'manager') %}
+    <button @click="showAddModal = true" class="btn btn-primary btn-sm">
+      + Ajouter un membre
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- ===== Tableau des membres ===== -->
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Membre</th>
+          <th>Rôle</th>
+          <th>Équipes</th>
+          <th>Projets actifs</th>
+          <th>Statut</th>
+          <th>Dernière connexion</th>
+          {% if current_user.role in ('admin', 'manager') %}
+          <th>Actions</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for member in members %}
+        <tr class="{% if not member.is_active %}opacity-50{% endif %}">
+          <td>
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-xs font-bold text-white uppercase flex-shrink-0">
+                {{ member.username[:2] }}
+              </div>
+              <div>
+                <div class="text-sm font-medium text-gray-200">{{ member.username }}</div>
+                <div class="text-xs text-gray-500">{{ member.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="badge
+              {% if member.role == 'admin' %}badge-critical
+              {% elif member.role == 'manager' %}badge-high
+              {% else %}badge-backlog{% endif %}">
+              {{ member.role | capitalize }}
+            </span>
+          </td>
+          <td class="text-xs text-gray-400">
+            {% for team in teams if team.manager_id == member.id %}
+            <span class="inline-block mr-1 mb-1 px-2 py-0.5 rounded-full text-white text-xs" style="background-color: {{ team.color_code }}40; border: 1px solid {{ team.color_code }}60; color: {{ team.color_code }}">
+              {{ team.name }}
+            </span>
+            {% endfor %}
+          </td>
+          <td>
+            <!-- Indicateur de charge de travail -->
+            <div class="flex items-center gap-2">
+              {% set active_count = member_workload.get(member.id, 0) %}
+              <div class="text-sm font-medium
+                {% if active_count >= 5 %}text-red-400
+                {% elif active_count >= 3 %}text-yellow-400
+                {% else %}text-green-400{% endif %}">
+                {{ active_count }}
+              </div>
+              <div class="flex gap-0.5">
+                {% for i in range([active_count, 5] | min) %}
+                <div class="w-2 h-4 rounded-sm
+                  {% if active_count >= 5 %}bg-red-400
+                  {% elif active_count >= 3 %}bg-yellow-400
+                  {% else %}bg-green-400{% endif %}">
+                </div>
+                {% endfor %}
+                {% for i in range([5 - active_count, 0] | max) %}
+                <div class="w-2 h-4 rounded-sm bg-gray-700"></div>
+                {% endfor %}
+              </div>
+            </div>
+          </td>
+          <td>
+            {% if member.is_active %}
+            <span class="flex items-center gap-1.5 text-xs text-green-400">
+              <span class="w-2 h-2 rounded-full bg-green-400"></span>
+              Actif
+            </span>
+            {% else %}
+            <span class="flex items-center gap-1.5 text-xs text-gray-500">
+              <span class="w-2 h-2 rounded-full bg-gray-600"></span>
+              Inactif
+            </span>
+            {% endif %}
+          </td>
+          <td class="text-xs text-gray-500">
+            {% if member.last_login %}
+            {{ member.last_login.strftime('%d/%m/%Y %H:%M') }}
+            {% else %}
+            Jamais connecté
+            {% endif %}
+          </td>
+          {% if current_user.role in ('admin', 'manager') %}
+          <td>
+            <div class="flex items-center gap-1">
+              <button
+                @click="editUser = { id: {{ member.id }}, username: '{{ member.username }}', email: '{{ member.email }}', role: '{{ member.role }}' }"
+                class="btn btn-secondary btn-sm"
+              >
+                Modifier
+              </button>
+              {% if current_user.role == 'admin' and member.id != current_user.id %}
+              <button
+                hx-delete="/api/team/members/{{ member.id }}"
+                hx-confirm="Désactiver ce membre ?"
+                hx-target="closest tr"
+                hx-swap="outerHTML"
+                class="btn btn-danger btn-sm"
+              >
+                Désactiver
+              </button>
+              {% endif %}
+            </div>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== Modal Ajouter membre ===== -->
+  <div
+    x-show="showAddModal"
+    x-transition
+    class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+    @click.self="showAddModal = false"
+  >
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl" @click.stop>
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-lg font-semibold text-white">Ajouter un membre</h3>
+        <button @click="showAddModal = false" class="text-gray-500 hover:text-gray-300">✕</button>
+      </div>
+
+      <form
+        hx-post="/api/team/members"
+        hx-target="#member-list-container"
+        hx-swap="innerHTML"
+        @htmx:after-request="showAddModal = false"
+        class="space-y-4"
+      >
+        <div>
+          <label class="form-label">Email *</label>
+          <input type="email" name="email" class="form-input" required />
+        </div>
+        <div>
+          <label class="form-label">Nom d'utilisateur *</label>
+          <input type="text" name="username" class="form-input" required />
+        </div>
+        <div>
+          <label class="form-label">Mot de passe *</label>
+          <input type="password" name="password" class="form-input" required minlength="8" />
+        </div>
+        <div>
+          <label class="form-label">Rôle</label>
+          <select name="role" class="form-input">
+            {% if current_user.role == 'admin' %}
+            <option value="admin">Admin</option>
+            <option value="manager">Manager</option>
+            {% endif %}
+            <option value="member" selected>Membre</option>
+          </select>
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" @click="showAddModal = false" class="btn btn-secondary flex-1">Annuler</button>
+          <button type="submit" class="btn btn-primary flex-1">Ajouter</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Modal Modifier membre ===== -->
+  <div
+    x-show="editUser !== null"
+    x-transition
+    class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+    @click.self="editUser = null"
+  >
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl" @click.stop>
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-lg font-semibold text-white">Modifier le membre</h3>
+        <button @click="editUser = null" class="text-gray-500 hover:text-gray-300">✕</button>
+      </div>
+
+      <template x-if="editUser">
+        <form
+          :action="`/api/team/members/${editUser.id}`"
+          hx-target="body"
+          hx-swap="none"
+          @submit.prevent="
+            fetch(`/api/team/members/${editUser.id}`, {
+              method: 'PUT',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({
+                username: $el.querySelector('[name=username]').value,
+                email: $el.querySelector('[name=email]').value,
+                role: $el.querySelector('[name=role]').value,
+                password: $el.querySelector('[name=password]').value || undefined,
+              })
+            }).then(() => { editUser = null; window.location.reload(); })
+          "
+          class="space-y-4"
+        >
+          <div>
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-input" :value="editUser.email" required />
+          </div>
+          <div>
+            <label class="form-label">Nom d'utilisateur</label>
+            <input type="text" name="username" class="form-input" :value="editUser.username" required />
+          </div>
+          <div>
+            <label class="form-label">Nouveau mot de passe (optionnel)</label>
+            <input type="password" name="password" class="form-input" minlength="8" />
+          </div>
+          {% if current_user.role == 'admin' %}
+          <div>
+            <label class="form-label">Rôle</label>
+            <select name="role" class="form-input" :value="editUser.role">
+              <option value="admin" :selected="editUser.role === 'admin'">Admin</option>
+              <option value="manager" :selected="editUser.role === 'manager'">Manager</option>
+              <option value="member" :selected="editUser.role === 'member'">Membre</option>
+            </select>
+          </div>
+          {% endif %}
+          <div class="flex gap-3 pt-2">
+            <button type="button" @click="editUser = null" class="btn btn-secondary flex-1">Annuler</button>
+            <button type="submit" class="btn btn-primary flex-1">Enregistrer</button>
+          </div>
+        </form>
+      </template>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

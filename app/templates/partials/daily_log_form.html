@@ -1,0 +1,143 @@
+{# Formulaire de journal quotidien — utilisé dans le détail projet #}
+<div
+  id="daily-log-form"
+  x-data="{
+    what_done: '',
+    what_planned: '',
+    blockers: '',
+    mood_score: 3,
+    submitting: false,
+    success: false,
+    getPayload() {
+      const today = new Date().toISOString().split('T')[0];
+      return {
+        log_date: today,
+        what_done: this.what_done,
+        what_planned: this.what_planned,
+        blockers: this.blockers || null,
+        mood_score: parseInt(this.mood_score),
+      };
+    },
+    async submit() {
+      if (!this.what_done || !this.what_planned) return;
+      this.submitting = true;
+      try {
+        const resp = await fetch('/api/projects/{{ project.id }}/daily-log', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(this.getPayload()),
+        });
+        if (resp.ok) {
+          this.success = true;
+          this.what_done = '';
+          this.what_planned = '';
+          this.blockers = '';
+          this.mood_score = 3;
+          DailyMgmt.showToast('Standup enregistré avec succès !', 'success');
+          setTimeout(() => { this.success = false; }, 3000);
+        } else {
+          DailyMgmt.showToast('Erreur lors de l\'enregistrement.', 'error');
+        }
+      } catch(e) {
+        DailyMgmt.showToast('Erreur réseau.', 'error');
+      }
+      this.submitting = false;
+    }
+  }"
+>
+
+  <!-- Message de succès -->
+  <div x-show="success" x-transition class="flash-message flash-success mb-4">
+    ✓ Standup du jour enregistré !
+  </div>
+
+  <div class="space-y-4">
+
+    <!-- Qu'est-ce qui a été fait ? -->
+    <div>
+      <label class="form-label flex items-center gap-2">
+        <span class="text-green-400">✓</span> Qu'est-ce qui a été fait ?
+      </label>
+      <textarea
+        x-model="what_done"
+        placeholder="Décrivez les actions réalisées aujourd'hui..."
+        class="form-input text-sm resize-none"
+        rows="3"
+        :disabled="submitting"
+      ></textarea>
+    </div>
+
+    <!-- Qu'est-ce qui est prévu ? -->
+    <div>
+      <label class="form-label flex items-center gap-2">
+        <span class="text-blue-400">→</span> Qu'est-ce qui est prévu pour demain ?
+      </label>
+      <textarea
+        x-model="what_planned"
+        placeholder="Décrivez les actions planifiées pour demain..."
+        class="form-input text-sm resize-none"
+        rows="3"
+        :disabled="submitting"
+      ></textarea>
+    </div>
+
+    <!-- Bloqueurs -->
+    <div>
+      <label class="form-label flex items-center gap-2">
+        <span class="text-red-400">⚠</span> Bloqueurs (optionnel)
+      </label>
+      <input
+        type="text"
+        x-model="blockers"
+        placeholder="Quels obstacles ou bloqueurs rencontrez-vous ?"
+        class="form-input text-sm"
+        :disabled="submitting"
+      />
+    </div>
+
+    <!-- Score d'humeur -->
+    <div>
+      <label class="form-label">Humeur de l'équipe</label>
+      <div class="flex items-center gap-4">
+        <input
+          type="range"
+          min="1"
+          max="5"
+          x-model="mood_score"
+          class="flex-1"
+          :disabled="submitting"
+        />
+        <div
+          class="mood-indicator w-10 h-10 text-sm flex-shrink-0"
+          :class="{
+            'mood-1': mood_score <= 1,
+            'mood-2': mood_score == 2,
+            'mood-3': mood_score == 3,
+            'mood-4': mood_score == 4,
+            'mood-5': mood_score >= 5,
+          }"
+          x-text="mood_score"
+        ></div>
+        <span class="text-sm text-gray-400 w-20">
+          <span x-show="mood_score <= 1">Très difficile</span>
+          <span x-show="mood_score == 2">Difficile</span>
+          <span x-show="mood_score == 3">Correct</span>
+          <span x-show="mood_score == 4">Bien</span>
+          <span x-show="mood_score >= 5">Excellent !</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Bouton d'envoi -->
+    <button
+      @click="submit()"
+      :disabled="submitting || !what_done || !what_planned"
+      class="btn btn-primary w-full"
+      :class="{ 'opacity-50 cursor-not-allowed': submitting || !what_done || !what_planned }"
+    >
+      <span x-show="!submitting">💾 Enregistrer le standup</span>
+      <span x-show="submitting">⏳ Enregistrement...</span>
+    </button>
+
+  </div>
+</div>
