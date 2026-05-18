@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guide d'installation — Daily Management App</title>
+  <style>
+    :root {
+      --green:  #22c55e;
+      --yellow: #eab308;
+      --red:    #ef4444;
+      --blue:   #3b82f6;
+      --orange: #f97316;
+      --gray:   #6b7280;
+      --dark:   #0f172a;
+      --card:   #1e293b;
+      --border: #334155;
+      --text:   #e2e8f0;
+      --muted:  #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 2rem 1rem;
+    }
+    .container { max-width: 860px; margin: 0 auto; }
+
+    /* Header */
+    header {
+      text-align: center;
+      padding: 2.5rem 2rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      margin-bottom: 2rem;
+    }
+    header .badge {
+      display: inline-block;
+      background: var(--blue);
+      color: #fff;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: .25rem .75rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
+    }
+    header h1 { font-size: 2rem; font-weight: 800; color: #f1f5f9; }
+    header p  { color: var(--muted); margin-top: .5rem; font-size: 1rem; }
+
+    /* Status bar */
+    .status-bar {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .status-pill {
+      flex: 1;
+      min-width: 160px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: .75rem;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+    .status-pill .dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .status-pill .dot.green  { background: var(--green); box-shadow: 0 0 8px var(--green); }
+    .status-pill .dot.blue   { background: var(--blue);  box-shadow: 0 0 8px var(--blue); }
+    .status-pill .dot.orange { background: var(--orange); box-shadow: 0 0 8px var(--orange); }
+    .status-pill strong { display: block; font-size: .85rem; color: #f1f5f9; }
+    .status-pill span   { font-size: .75rem; color: var(--muted); }
+
+    /* Step cards */
+    .step {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+    }
+    .step-number {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #fff;
+      font-weight: 800;
+      font-size: .95rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-number.green  { background: var(--green); }
+    .step-number.orange { background: var(--orange); }
+    .step-number.yellow { background: var(--yellow); color: #1e293b; }
+    .step-title { font-size: 1.05rem; font-weight: 700; color: #f1f5f9; }
+    .step-subtitle { font-size: .8rem; color: var(--muted); margin-top: .1rem; }
+    .step-body { padding: 1.5rem; }
+    .step-body p { color: var(--muted); margin-bottom: 1rem; font-size: .9rem; }
+    .step-body p:last-child { margin-bottom: 0; }
+
+    /* Code blocks */
+    .code-block {
+      background: #0a0f1e;
+      border: 1px solid var(--border);
+      border-radius: .5rem;
+      padding: 1rem 1.25rem;
+      margin: .75rem 0;
+      overflow-x: auto;
+      position: relative;
+    }
+    .code-block code {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: .85rem;
+      color: #a5f3fc;
+      white-space: pre;
+      display: block;
+      line-height: 1.6;
+    }
+    .code-block .comment { color: var(--muted); }
+    .code-block .cmd     { color: #86efac; }
+    .code-block .path    { color: #fde68a; }
+    .code-block .string  { color: #f9a8d4; }
+    .code-block-label {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: .4rem;
+    }
+
+    /* Callouts */
+    .callout {
+      border-radius: .5rem;
+      padding: 1rem 1.25rem;
+      margin: .75rem 0;
+      font-size: .875rem;
+      display: flex;
+      gap: .75rem;
+      align-items: flex-start;
+    }
+    .callout.info    { background: rgba(59,130,246,.12); border-left: 3px solid var(--blue); }
+    .callout.warn    { background: rgba(234,179,8,.1);   border-left: 3px solid var(--yellow); }
+    .callout.success { background: rgba(34,197,94,.1);   border-left: 3px solid var(--green); }
+    .callout.danger  { background: rgba(239,68,68,.1);   border-left: 3px solid var(--red); }
+    .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: .1rem; }
+    .callout-body { color: var(--muted); line-height: 1.6; }
+    .callout-body strong { color: var(--text); }
+
+    /* Credentials table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: .75rem 0;
+      font-size: .85rem;
+    }
+    thead tr { background: rgba(255,255,255,.05); }
+    th { text-align: left; padding: .6rem 1rem; color: var(--muted); font-weight: 600; font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; }
+    td { padding: .65rem 1rem; border-top: 1px solid var(--border); color: var(--text); }
+    td code { background: rgba(255,255,255,.07); padding: .1rem .4rem; border-radius: .3rem; font-size: .82rem; color: #a5f3fc; font-family: 'Cascadia Code', monospace; }
+    .role-admin   { color: var(--red);    font-weight: 700; }
+    .role-manager { color: var(--orange); font-weight: 700; }
+    .role-member  { color: var(--blue);   font-weight: 700; }
+
+    /* Page index */
+    .page-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: .75rem;
+      margin: .75rem 0;
+    }
+    .page-card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      border-radius: .5rem;
+      padding: .75rem 1rem;
+    }
+    .page-card .url  { font-family: monospace; font-size: .8rem; color: var(--blue); }
+    .page-card .desc { font-size: .78rem; color: var(--muted); margin-top: .2rem; }
+
+    /* API table */
+    .api-row { display: flex; gap: .5rem; align-items: baseline; margin: .3rem 0; font-size: .83rem; }
+    .method { font-family: monospace; font-weight: 700; font-size: .72rem; padding: .15rem .45rem; border-radius: .25rem; flex-shrink: 0; }
+    .method.get    { background: rgba(34,197,94,.2);  color: var(--green); }
+    .method.post   { background: rgba(59,130,246,.2); color: var(--blue); }
+    .method.put    { background: rgba(234,179,8,.2);  color: var(--yellow); }
+    .method.delete { background: rgba(239,68,68,.2);  color: var(--red); }
+    .api-path { font-family: monospace; color: #e2e8f0; font-size: .83rem; }
+    .api-desc { color: var(--muted); font-size: .78rem; margin-left: .25rem; }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding: 1.5rem;
+      color: var(--muted);
+      font-size: .8rem;
+      border-top: 1px solid var(--border);
+    }
+    footer strong { color: var(--text); }
+
+    /* OS tabs */
+    .tabs { display: flex; gap: .5rem; margin-bottom: .75rem; flex-wrap: wrap; }
+    .tab-label {
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--border);
+      border-radius: .4rem;
+      padding: .3rem .8rem;
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: default;
+    }
+    .tab-label.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+    hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+    ul { padding-left: 1.4rem; color: var(--muted); font-size: .875rem; }
+    ul li { margin-bottom: .3rem; }
+    ul li strong { color: var(--text); }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="badge">Phase 1 — Prêt à tester</div>
+    <h1>Daily Management App</h1>
+    <p>Guide d'installation et de démarrage local — Lean / Visual Management IIoT/OT</p>
+  </header>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <div class="status-pill">
+      <div class="dot green"></div>
+      <div>
+        <strong>127 fichiers générés</strong>
+        <span>8 033 lignes de code</span>
+      </div>
+    </div>
+    <div class="status-pill">
+      <div class="dot green"></div>
+      <div>
+        <strong>91 tests passants</strong>
+        <span>Auth · CRUD · Lean · API</span>
+      </div>
+    </div>
+    <div class="status-pill">
+      <div class="dot blue"></div>
+      <div>
+        <strong>Phase 1 — SQLite</strong>
+        <span>SSO / Rapports : stubs prêts</span>
+      </div>
+    </div>
+    <div class="status-pill">
+      <div class="dot orange"></div>
+      <div>
+        <strong>Python 3.11+</strong>
+        <span>FastAPI · HTMX · TailwindCSS</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1 — Prérequis -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number">1</div>
+      <div>
+        <div class="step-title">Prérequis — ce qu'il faut avoir sur votre machine</div>
+        <div class="step-subtitle">Vérifications avant de commencer</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <p>Vérifiez que ces outils sont installés :</p>
+      <div class="code-block-label">Terminal — vérification</div>
+      <div class="code-block"><code><span class="cmd">python3 --version</span>     <span class="comment"># doit afficher 3.11 ou supérieur</span>
+<span class="cmd">git --version</span>           <span class="comment"># doit afficher 2.x</span>
+<span class="cmd">pip3 --version</span>           <span class="comment"># doit être disponible</span></code></div>
+
+      <div class="callout info">
+        <div class="callout-icon">ℹ️</div>
+        <div class="callout-body">
+          <strong>Python 3.11 ou 3.12 requis.</strong><br>
+          Si vous n'avez pas Python, téléchargez-le sur <strong>python.org</strong> (Windows) ou via <code>brew install python@3.12</code> (macOS) ou <code>sudo apt install python3.12</code> (Ubuntu/Debian).
+        </div>
+      </div>
+      <div class="callout warn">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body">
+          <strong>Windows uniquement :</strong> utilisez <strong>Git Bash</strong> ou <strong>WSL2</strong> pour les commandes ci-dessous. L'invite de commandes cmd.exe n'est pas recommandée.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 — Cloner -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number">2</div>
+      <div>
+        <div class="step-title">Cloner le dépôt et se placer sur la branche</div>
+        <div class="step-subtitle">Récupérer le code depuis GitHub</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="code-block-label">Terminal</div>
+      <div class="code-block"><code><span class="comment"># Cloner le projet</span>
+<span class="cmd">git clone https://github.com/zezere974/projectmanagement.git</span>
+<span class="cmd">cd projectmanagement</span>
+
+<span class="comment"># Se placer sur la branche de développement</span>
+<span class="cmd">git checkout claude/daily-management-app-dcTrd</span>
+
+<span class="comment"># Vérifier qu'on est au bon endroit</span>
+<span class="cmd">git log --oneline -3</span></code></div>
+
+      <p>Vous devez voir deux commits :</p>
+      <div class="code-block"><code>dc2ca61 feat: Phase 1 — Daily Management App initial implementation
+cabba97 feat: Phase 1 — initial scaffold (config, database, core models)</code></div>
+    </div>
+  </div>
+
+  <!-- STEP 3 — Environnement virtuel -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number">3</div>
+      <div>
+        <div class="step-title">Créer et activer un environnement virtuel Python</div>
+        <div class="step-subtitle">Isoler les dépendances du projet</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="tabs">
+        <div class="tab-label active">macOS / Linux</div>
+        <div class="tab-label">Windows (Git Bash)</div>
+      </div>
+      <div class="code-block-label">macOS / Linux</div>
+      <div class="code-block"><code><span class="comment"># Créer l'environnement</span>
+<span class="cmd">python3 -m venv .venv</span>
+
+<span class="comment"># Activer l'environnement</span>
+<span class="cmd">source .venv/bin/activate</span>
+
+<span class="comment"># Votre terminal doit maintenant afficher (.venv) au début</span></code></div>
+
+      <div class="code-block-label">Windows (Git Bash / WSL)</div>
+      <div class="code-block"><code><span class="cmd">python -m venv .venv</span>
+<span class="cmd">source .venv/Scripts/activate</span>   <span class="comment"># Git Bash</span>
+<span class="comment"># OU</span>
+<span class="cmd">.venv\Scripts\activate</span>            <span class="comment"># CMD/PowerShell</span></code></div>
+
+      <div class="callout success">
+        <div class="callout-icon">✅</div>
+        <div class="callout-body">
+          <strong>Bonne pratique :</strong> toujours activer le venv avant de travailler sur le projet. Vous le saurez si <code>(.venv)</code> apparaît dans votre terminal.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 — Installer les dépendances -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number">4</div>
+      <div>
+        <div class="step-title">Installer les dépendances</div>
+        <div class="step-subtitle">~15–30 secondes selon votre connexion</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="code-block"><code><span class="comment"># S'assurer que pip est à jour</span>
+<span class="cmd">pip install --upgrade pip</span>
+
+<span class="comment"># Installer toutes les dépendances Phase 1</span>
+<span class="cmd">pip install -r requirements.txt</span></code></div>
+
+      <p>Vous verrez un affichage du type <code>Successfully installed fastapi-0.115.x uvicorn-0.30.x ...</code> à la fin.</p>
+
+      <div class="callout info">
+        <div class="callout-icon">ℹ️</div>
+        <div class="callout-body">
+          <strong>requirements-phase2.txt</strong> et <strong>requirements-phase3.txt</strong> existent mais ne sont PAS nécessaires pour cette phase. Ne les installez pas encore.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5 — Fichier .env -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number">5</div>
+      <div>
+        <div class="step-title">Vérifier le fichier <code>.env</code></div>
+        <div class="step-subtitle">Configuration de l'application — déjà préremplie pour le dev local</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <p>Un fichier <code>.env</code> fonctionnel est déjà inclus dans le dépôt. Pour le dev local, <strong>vous n'avez rien à modifier</strong>. Voici les valeurs importantes :</p>
+
+      <div class="code-block"><code>APP_PHASE=1
+DATABASE_URL=<span class="string">sqlite:///./daily_mgmt.db</span>   <span class="comment"># SQLite local, créé automatiquement</span>
+APP_URL=<span class="string">http://localhost:8000</span>
+DEBUG=<span class="string">true</span>
+SSO_ENABLED=<span class="string">false</span>              <span class="comment"># SSO Microsoft désactivé en Phase 1</span>
+REPORTS_ENABLED=<span class="string">false</span>          <span class="comment"># Rapports disponibles en Phase 2</span>
+TEAMS_ENABLED=<span class="string">false</span>             <span class="comment"># Teams disponible en Phase 3</span></code></div>
+
+      <div class="callout warn">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body">
+          <strong>En production</strong>, changez impérativement <code>SECRET_KEY</code> et <code>JWT_SECRET_KEY</code> par des valeurs aléatoires générées avec :<br>
+          <code>python3 -c "import secrets; print(secrets.token_hex(32))"</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 6 — Lancer l'app -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number green">6</div>
+      <div>
+        <div class="step-title">Lancer l'application</div>
+        <div class="step-subtitle">La base de données SQLite et les données de démo sont créées automatiquement</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="code-block"><code><span class="comment"># Depuis la racine du projet (avec le venv activé)</span>
+<span class="cmd">uvicorn app.main:app --reload --host 0.0.0.0 --port 8000</span></code></div>
+
+      <p>Vous devriez voir dans le terminal :</p>
+      <div class="code-block"><code>INFO  Démarrage — Daily Management Phase 1
+INFO  Base de données : sqlite:///./daily_mgmt.db
+INFO  Base de données initialisée et données de démonstration insérées.
+INFO  Application startup complete.
+INFO  Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)</code></div>
+
+      <div class="callout success">
+        <div class="callout-icon">🚀</div>
+        <div class="callout-body">
+          <strong>L'application est prête !</strong> Ouvrez votre navigateur sur <strong>http://localhost:8000</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 7 — Comptes de démo -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number yellow">7</div>
+      <div>
+        <div class="step-title">Comptes de démonstration</div>
+        <div class="step-subtitle">8 utilisateurs pré-créés avec un contexte industriel IIoT/OT réaliste</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <p>Connectez-vous sur <code>http://localhost:8000/login</code> avec un de ces comptes :</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Mot de passe</th>
+            <th>Rôle</th>
+            <th>Profil</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>admin@dailymgmt.local</code></td>
+            <td><code>Admin123!</code></td>
+            <td><span class="role-admin">admin</span></td>
+            <td>Accès total</td>
+          </tr>
+          <tr>
+            <td><code>manager.ot@dailymgmt.local</code></td>
+            <td><code>Manager123!</code></td>
+            <td><span class="role-manager">manager</span></td>
+            <td>Responsable OT Cybersécurité</td>
+          </tr>
+          <tr>
+            <td><code>manager.it@dailymgmt.local</code></td>
+            <td><code>Manager123!</code></td>
+            <td><span class="role-manager">manager</span></td>
+            <td>Responsable IT</td>
+          </tr>
+          <tr>
+            <td><code>ingenieur1@dailymgmt.local</code></td>
+            <td><code>Member123!</code></td>
+            <td><span class="role-member">member</span></td>
+            <td>Ingénieur terrain OT</td>
+          </tr>
+          <tr>
+            <td><code>ingenieur2@dailymgmt.local</code></td>
+            <td><code>Member123!</code></td>
+            <td><span class="role-member">member</span></td>
+            <td>Ingénieur terrain</td>
+          </tr>
+          <tr>
+            <td><code>analyste@dailymgmt.local</code></td>
+            <td><code>Member123!</code></td>
+            <td><span class="role-member">member</span></td>
+            <td>Analyste Sécurité</td>
+          </tr>
+          <tr>
+            <td><code>chef.projet@dailymgmt.local</code></td>
+            <td><code>Member123!</code></td>
+            <td><span class="role-member">member</span></td>
+            <td>Chef de projet</td>
+          </tr>
+          <tr>
+            <td><code>technicien@dailymgmt.local</code></td>
+            <td><code>Member123!</code></td>
+            <td><span class="role-member">member</span></td>
+            <td>Technicien terrain</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body">
+          <strong>Commencez par le compte admin</strong> pour avoir accès à toutes les fonctionnalités. Le compte manager OT a accès aux 5 projets de l'équipe Cybersécurité OT.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 8 — Pages à tester -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number">8</div>
+      <div>
+        <div class="step-title">Pages de l'application à tester</div>
+        <div class="step-subtitle">Parcours de validation recommandé</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="page-grid">
+        <div class="page-card">
+          <div class="url">/login</div>
+          <div class="desc">Authentification email/password. Bouton SSO Microsoft visible mais désactivé.</div>
+        </div>
+        <div class="page-card">
+          <div class="url">/dashboard</div>
+          <div class="desc">KPIs globaux, Kanban PDCA, alertes actives, météo équipe.</div>
+        </div>
+        <div class="page-card">
+          <div class="url">/projects</div>
+          <div class="desc">Liste filtrée, vue cartes/liste, export CSV, filtres statut/priorité.</div>
+        </div>
+        <div class="page-card">
+          <div class="url">/projects/1</div>
+          <div class="desc">Détail projet : tâches, log du jour, historique, escalade.</div>
+        </div>
+        <div class="page-card">
+          <div class="url">/stand-up</div>
+          <div class="desc">Vue plein écran avec timer 15 min et champs Fait/Prévu/Bloqueurs.</div>
+        </div>
+        <div class="page-card">
+          <div class="url">/team</div>
+          <div class="desc">Membres, rôles, charge de travail, ajout/modification.</div>
+        </div>
+        <div class="page-card">
+          <div class="url">/reports</div>
+          <div class="desc">Placeholder "Disponible en Phase 2".</div>
+        </div>
+        <div class="page-card">
+          <div class="url">/docs</div>
+          <div class="desc">API Swagger interactive générée automatiquement par FastAPI.</div>
+        </div>
+      </div>
+
+      <hr>
+      <p><strong>Parcours de test recommandé :</strong></p>
+      <ul>
+        <li>Se connecter avec <code>admin@dailymgmt.local</code></li>
+        <li>Explorer le <strong>Dashboard</strong> — vérifier les KPIs et le Kanban PDCA</li>
+        <li>Ouvrir un projet bloqué (ex. Migration SCADA) — tester l'escalade</li>
+        <li>Ajouter une tâche dans un projet via l'interface inline (HTMX)</li>
+        <li>Remplir le DailyLog du jour (Fait / Prévu / Bloqueurs)</li>
+        <li>Tester la vue <strong>Stand-up</strong> — démarrer le timer 15 min</li>
+        <li>Aller sur <strong>/docs</strong> pour explorer l'API Swagger</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- STEP 9 — API REST -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number">9</div>
+      <div>
+        <div class="step-title">API REST disponible</div>
+        <div class="step-subtitle">Toutes les routes accessibles via Swagger sur /docs</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <p>Routes principales disponibles en Phase 1 :</p>
+
+      <div class="api-row"><span class="method post">POST</span><span class="api-path">/auth/login</span><span class="api-desc">→ Authentification, retourne access + refresh token</span></div>
+      <div class="api-row"><span class="method post">POST</span><span class="api-path">/auth/refresh</span><span class="api-desc">→ Renouveller l'access token</span></div>
+      <div class="api-row"><span class="method get">GET</span><span class="api-path">/api/dashboard</span><span class="api-desc">→ KPIs globaux, alertes, PDCA</span></div>
+      <div class="api-row"><span class="method get">GET</span><span class="api-path">/api/projects</span><span class="api-desc">→ Liste filtrée (status, priority, lean_phase, search)</span></div>
+      <div class="api-row"><span class="method post">POST</span><span class="api-path">/api/projects</span><span class="api-desc">→ Créer un projet</span></div>
+      <div class="api-row"><span class="method get">GET</span><span class="api-path">/api/projects/{id}</span><span class="api-desc">→ Détail + tâches + logs</span></div>
+      <div class="api-row"><span class="method put">PUT</span><span class="api-path">/api/projects/{id}</span><span class="api-desc">→ Modifier un projet</span></div>
+      <div class="api-row"><span class="method delete">DEL</span><span class="api-path">/api/projects/{id}</span><span class="api-desc">→ Soft delete</span></div>
+      <div class="api-row"><span class="method post">POST</span><span class="api-path">/api/projects/{id}/flag</span><span class="api-desc">→ Escalader un projet</span></div>
+      <div class="api-row"><span class="method post">POST</span><span class="api-path">/api/projects/{id}/daily-log</span><span class="api-desc">→ Enregistrer le log du stand-up</span></div>
+      <div class="api-row"><span class="method get">GET</span><span class="api-path">/api/alerts</span><span class="api-desc">→ Alertes actives / résolues</span></div>
+      <div class="api-row"><span class="method put">PUT</span><span class="api-path">/api/alerts/{id}/resolve</span><span class="api-desc">→ Résoudre une alerte</span></div>
+      <div class="api-row"><span class="method get">GET</span><span class="api-path">/api/export/projects</span><span class="api-desc">→ Export CSV ou JSON (?format=csv)</span></div>
+      <div class="api-row"><span class="method get">GET</span><span class="api-path">/api/team</span><span class="api-desc">→ Membres de l'équipe</span></div>
+
+      <hr>
+      <div class="api-row"><span class="method get">GET</span><span class="api-path">/api/reports/weekly</span><span class="api-desc">→ HTTP 501 "Disponible en Phase 2"</span></div>
+      <div class="api-row"><span class="method post">POST</span><span class="api-path">/api/notifications/teams/test</span><span class="api-desc">→ HTTP 501 "Disponible en Phase 3"</span></div>
+    </div>
+  </div>
+
+  <!-- STEP 10 — Tests -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number orange">10</div>
+      <div>
+        <div class="step-title">Lancer la suite de tests</div>
+        <div class="step-subtitle">91 tests — auth, CRUD, Lean, API, compatibilité DB</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="code-block"><code><span class="comment"># Lancer tous les tests</span>
+<span class="cmd">pytest tests/ -v</span>
+
+<span class="comment"># Avec couverture de code</span>
+<span class="cmd">pytest tests/ -v --tb=short</span>
+
+<span class="comment"># Un module spécifique</span>
+<span class="cmd">pytest tests/test_auth.py -v</span>
+<span class="cmd">pytest tests/test_lean_logic.py -v</span></code></div>
+
+      <p>Résultat attendu :</p>
+      <div class="code-block"><code>====================== 91 passed, 2 warnings in ~46s ======================</code></div>
+
+      <div class="callout success">
+        <div class="callout-icon">✅</div>
+        <div class="callout-body">
+          Les tests utilisent une base SQLite <strong>en mémoire</strong>, isolée de votre base de données de dev. Ils peuvent être relancés à tout moment sans effet de bord.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 11 — Données de démo -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number">11</div>
+      <div>
+        <div class="step-title">Données de démonstration incluses</div>
+        <div class="step-subtitle">8 projets IIoT/OT Cybersécurité réalistes</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <table>
+        <thead>
+          <tr><th>Projet</th><th>Équipe</th><th>Statut</th><th>Priorité</th><th>PDCA</th><th>Avancement</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Déploiement Firewall OT Niveau 2</td><td>Cyber OT</td><td>in_progress</td><td>critical</td><td>Do</td><td>65%</td></tr>
+          <tr><td>Migration SCADA v3→v4 ⚑</td><td>Cyber OT</td><td>blocked</td><td>high</td><td>Plan</td><td>20%</td></tr>
+          <tr><td>Certification IEC 62443</td><td>Cyber OT</td><td>in_progress</td><td>high</td><td>Check</td><td>80%</td></tr>
+          <tr><td>Audit NIS2 Conformité</td><td>Cyber OT</td><td>in_progress</td><td>critical</td><td>Act</td><td>45%</td></tr>
+          <tr><td>Déploiement Capteurs IoT Atelier</td><td>IT</td><td>in_progress</td><td>medium</td><td>Do</td><td>55%</td></tr>
+          <tr><td>Mise à Jour HMI Production</td><td>IT</td><td>backlog</td><td>medium</td><td>Plan</td><td>0%</td></tr>
+          <tr><td>Intégration OPC-UA → MES</td><td>IT</td><td>in_progress</td><td>high</td><td>Do</td><td>30%</td></tr>
+          <tr><td>Plan de Continuité d'Activité OT</td><td>Cyber OT</td><td>done</td><td>high</td><td>Act</td><td>100%</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-icon">🔄</div>
+        <div class="callout-body">
+          <strong>Réinitialiser les données :</strong> supprimez le fichier <code>daily_mgmt.db</code> et redémarrez l'application — la base et les données de démo seront recréées automatiquement.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 12 — Dépannage -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number">12</div>
+      <div>
+        <div class="step-title">Dépannage courant</div>
+        <div class="step-subtitle">Problèmes fréquents et solutions</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <p><strong>Erreur : <code>ModuleNotFoundError: No module named 'app'</code></strong></p>
+      <div class="code-block"><code><span class="comment"># Lancez uvicorn depuis la RACINE du projet (là où se trouve app/)</span>
+<span class="cmd">pwd</span>   <span class="comment"># doit afficher .../projectmanagement (PAS .../projectmanagement/app)</span>
+<span class="cmd">uvicorn app.main:app --reload</span></code></div>
+
+      <p><strong>Erreur : <code>Address already in use</code> (port 8000 occupé)</strong></p>
+      <div class="code-block"><code><span class="cmd">uvicorn app.main:app --reload --port 8001</span>
+<span class="comment"># Puis accéder sur http://localhost:8001</span></code></div>
+
+      <p><strong>Erreur <code>bcrypt</code> ou <code>passlib</code></strong></p>
+      <div class="code-block"><code><span class="cmd">pip install passlib[bcrypt] --force-reinstall</span></code></div>
+
+      <p><strong>La base de données semble vide ou corrompue</strong></p>
+      <div class="code-block"><code><span class="comment"># Supprimer la base et laisser l'app la recréer</span>
+<span class="cmd">rm daily_mgmt.db</span>
+<span class="cmd">uvicorn app.main:app --reload</span></code></div>
+
+      <p><strong>Les tests échouent avec des erreurs d'import</strong></p>
+      <div class="code-block"><code><span class="comment"># S'assurer que le venv est activé et les dépendances installées</span>
+<span class="cmd">pip install -r requirements.txt</span>
+<span class="cmd">pytest tests/ -v</span></code></div>
+
+      <div class="callout danger">
+        <div class="callout-icon">🛑</div>
+        <div class="callout-body">
+          <strong>Ne pas installer requirements-phase2.txt ou requirements-phase3.txt</strong> en Phase 1 — certaines dépendances (weasyprint, pyodbc) nécessitent des outils système supplémentaires.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <strong>Daily Management App — Phase 1</strong> · FastAPI · SQLAlchemy 2 · HTMX · TailwindCSS<br>
+    SQLite (Phase 1) → MS SQL Managed Instance (Phase 2) · SSO Microsoft Entra ID (Phase 2) · Teams (Phase 3)<br><br>
+    Branch : <code>claude/daily-management-app-dcTrd</code> · 127 fichiers · 91 tests · 8 projets IIoT/OT de démo
+  </footer>
+
+</div>
+</body>
+</html>
